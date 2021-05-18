@@ -19,6 +19,7 @@ class ViewController: UIViewController {
     
     private var viewModels = [NewsTableViewCellViewModel]()
     private var articles = [Articles]()
+    private var searchVC = UISearchController(searchResultsController: nil)
     
     //MARK: - Lifecycle
     override func viewDidLoad() {
@@ -26,6 +27,7 @@ class ViewController: UIViewController {
         navigationItem.title = "Top News"
         navigationController?.navigationBar.prefersLargeTitles = true
         setupView()
+        setupSearchBar()
         fetchTopNews()
     }
    
@@ -60,6 +62,11 @@ class ViewController: UIViewController {
         view.addSubview(tableView)
         tableView.fillSuperview()
     }
+    
+    private func setupSearchBar(){
+        navigationItem.searchController = searchVC
+        searchVC.searchBar.delegate = self
+    }
 }
 
 
@@ -87,3 +94,30 @@ extension ViewController: UITableViewDelegate {
     }
 }
 
+//MARK: - UISearchBarDelegate
+extension ViewController: UISearchBarDelegate{
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let text = searchBar.text, !text.isEmpty else { return }
+        
+        APICaller.shared.searchNews(with:text) { [weak self] result in
+            switch result{
+            case .success(let articles):
+                self?.articles = articles
+                self?.viewModels = articles.compactMap({
+                    NewsTableViewCellViewModel(
+                     title: $0.title,
+                     subtitle: $0.description ?? "",
+                     imageURL: URL(string:$0.urlToImage ?? "")
+                    )
+                })
+                
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                    self?.searchVC.dismiss(animated: true)
+                }
+            case . failure(let error):
+                print(error)
+            }
+        }
+    }
+}

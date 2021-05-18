@@ -16,6 +16,8 @@ final class APICaller {
         static let path = "top-headlines"
         static let apiKey = "e296a0c54e8b40ec8d279689e4a1b44b"
         static let endPoint = "id"
+        static let searchUrlString = "https://newsapi.org/v2/everything?sortedBy=popularity&apiKey=e296a0c54e8b40ec8d279689e4a1b44b&q="
+        
     }
     
     enum APIError: Error {
@@ -46,4 +48,31 @@ final class APICaller {
         }
         task.resume()
     }
+    
+    
+    public func searchNews(with query: String, completion: @escaping (Result<[Articles], Error>) -> Void) {
+        guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        
+        guard let url = URL(string: Constants.searchUrlString + query) else {
+            completion(.failure(APIError.invalidUrl))
+            return
+        }
+        let task = URLSession.shared.dataTask(with: url) {data, _, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            guard let data = data else { return }
+            
+            do {
+                let response = try JSONDecoder().decode(NewsData.self, from: data)
+                completion(.success(response.articles))
+                
+            }catch {
+                completion(.failure(error))
+            }
+        }
+        task.resume()
+    }
+    
 }
