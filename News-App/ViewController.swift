@@ -8,12 +8,19 @@
 import UIKit
 
 class ViewController: UIViewController {
+    //MARK: - Properties
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .red
+        APICaller.shared.getTopNews { result in
+            switch result{
+            case .success(let response):
+                break
+            case . failure(let error):
+                print(error)
+            }
+        }
     }
-
 
 }
 
