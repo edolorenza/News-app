@@ -1,4 +1,4 @@
-# Photos search
+# News App
 News App Top Headline [news](https://newsapi.org)
 
 ## Objectives
